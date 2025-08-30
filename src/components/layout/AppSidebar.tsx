@@ -1,4 +1,4 @@
-import { Home, Layout, Database, Eye, Shield, Settings, Zap, FolderOpen, LogOut } from "lucide-react";
+import { Home, Layout, Database, Eye, Shield, Settings, Layers, FolderOpen, LogOut } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -60,14 +60,14 @@ export function AppSidebar() {
         <div className="p-6 border-b border-sidebar-border">
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg gradient-primary">
-              <Zap className="h-4 w-4 text-white" />
+              <Layers className="h-4 w-4 text-white" />
             </div>
-            {!collapsed && (
-              <div>
-                <h1 className="text-lg font-bold text-sidebar-foreground">AI Builder</h1>
-                <p className="text-xs text-sidebar-foreground/60">Website Creator</p>
-              </div>
-            )}
+                         {!collapsed && (
+               <div>
+                 <h1 className="text-lg font-bold text-sidebar-foreground">Visual Builder</h1>
+                 <p className="text-xs text-sidebar-foreground/60">AI-Powered Creator</p>
+               </div>
+             )}
           </div>
         </div>
 

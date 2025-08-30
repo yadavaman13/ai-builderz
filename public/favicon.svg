@@ -1,17 +1,29 @@
 <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
   <defs>
     <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:rgb(107, 38, 217);stop-opacity:1" />
-      <stop offset="100%" style="stop-color:rgb(13, 162, 231);stop-opacity:1" />
+      <stop offset="0%" style="stop-color:#6B26D9;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0DA2E7;stop-opacity:1" />
     </linearGradient>
   </defs>
   
   <!-- Background circle with gradient -->
   <circle cx="16" cy="16" r="16" fill="url(#gradient)"/>
   
-  <!-- Zap/lightning bolt icon - using the exact Lucide design -->
-  <path d="M8 18a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 17 18h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 15 18z" 
+  <!-- Layers icon - using the exact Lucide design -->
+  <path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z" 
         fill="white" 
+        stroke="white" 
+        stroke-width="1" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"/>
+  <path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65" 
+        fill="none" 
+        stroke="white" 
+        stroke-width="1" 
+        stroke-linecap="round" 
+        stroke-linejoin="round"/>
+  <path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65" 
+        fill="none" 
         stroke="white" 
         stroke-width="1" 
         stroke-linecap="round" 
