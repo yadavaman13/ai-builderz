@@ -5,10 +5,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Eye, ExternalLink, Smartphone, Monitor, Tablet, Upload, Download, AlertTriangle, CheckCircle, Globe, Zap, ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { useBuilderStore } from "@/stores/builderStore";
-import { CanvasComponent } from "@/components/builder/CanvasComponent";
+import { PreviewComponent } from "@/components/builder/PreviewComponent";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
 
 const devices = [
   { name: "Desktop", icon: Monitor, width: "100%" },
@@ -137,7 +139,8 @@ export default function Preview() {
   const warnings = checkProjectHealth();
 
   return (
-    <div className="h-full flex flex-col">
+    <DndProvider backend={HTML5Backend}>
+      <div className="h-full flex flex-col">
       {/* Preview Header */}
       <div className="border-b border-border bg-card p-4">
         <div className="flex items-center justify-between">
@@ -251,18 +254,10 @@ export default function Preview() {
             ) : (
               <div className="w-full h-full relative bg-white">
                 {components.map((component) => (
-                  <div
+                  <PreviewComponent
                     key={component.id}
-                    className="absolute"
-                    style={{
-                      left: component.x,
-                      top: component.y,
-                      width: component.width,
-                      height: component.height,
-                    }}
-                  >
-                    <CanvasComponent component={component} isSelected={false} />
-                  </div>
+                    component={component}
+                  />
                 ))}
               </div>
             )}
@@ -304,6 +299,7 @@ export default function Preview() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </DndProvider>
   );
 }
