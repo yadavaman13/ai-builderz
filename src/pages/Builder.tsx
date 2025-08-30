@@ -1,86 +1,102 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Layout, Type, Image, Square } from "lucide-react";
-
-const componentCategories = [
-  {
-    title: "Layout",
-    icon: Layout,
-    components: ["Container", "Grid", "Flex", "Stack"]
-  },
-  {
-    title: "Typography", 
-    icon: Type,
-    components: ["Heading", "Paragraph", "List", "Quote"]
-  },
-  {
-    title: "Media",
-    icon: Image,
-    components: ["Image", "Video", "Gallery", "Icon"]
-  },
-  {
-    title: "Forms",
-    icon: Square,
-    components: ["Input", "Button", "Select", "Checkbox"]
-  }
-];
+import { Palette, Download, Eye, Save, Undo, Redo, Trash2 } from "lucide-react";
+import { DndProvider } from 'react-dnd';
+import { HTML5Backend } from 'react-dnd-html5-backend';
+import { ComponentLibrary } from '@/components/builder/ComponentLibrary';
+import { Canvas } from '@/components/builder/Canvas';
+import { PropertiesPanel } from '@/components/builder/PropertiesPanel';
+import { useBuilderStore } from '@/stores/builderStore';
+import { useToast } from "@/hooks/use-toast";
 
 export default function Builder() {
-  return (
-    <div className="h-full flex">
-      {/* Component Panel */}
-      <div className="w-80 border-r border-border bg-card p-6 space-y-6">
-        <div className="space-y-2">
-          <h2 className="text-2xl font-bold">Components</h2>
-          <p className="text-sm text-muted-foreground">
-            Drag components to build your page
-          </p>
-        </div>
-        
-        <div className="space-y-4">
-          {componentCategories.map((category) => (
-            <Card key={category.title} className="border-border">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm flex items-center gap-2">
-                  <category.icon className="h-4 w-4" />
-                  {category.title}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {category.components.map((component) => (
-                  <Button
-                    key={component}
-                    variant="ghost"
-                    size="sm"
-                    className="w-full justify-start text-xs"
-                  >
-                    <Plus className="h-3 w-3 mr-2" />
-                    {component}
-                  </Button>
-                ))}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
+  const { components, clearCanvas } = useBuilderStore();
+  const { toast } = useToast();
 
-      {/* Canvas Area */}
-      <div className="flex-1 bg-muted/30 p-8 flex items-center justify-center">
-        <div className="text-center space-y-4 max-w-md">
-          <div className="mx-auto w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center">
-            <Layout className="h-8 w-8 text-white" />
+  const handleSave = async () => {
+    // TODO: Implement save to Supabase
+    toast({
+      title: "Saved",
+      description: "Your design has been saved successfully.",
+    });
+  };
+
+  const handlePreview = () => {
+    // TODO: Navigate to preview with current state
+    toast({
+      title: "Preview",
+      description: "Opening preview in a new tab...",
+    });
+  };
+
+  const handleExport = () => {
+    // TODO: Implement export functionality
+    toast({
+      title: "Export",
+      description: "Exporting your design...",
+    });
+  };
+
+  const handleClear = () => {
+    clearCanvas();
+    toast({
+      title: "Canvas Cleared",
+      description: "All components have been removed from the canvas.",
+    });
+  };
+
+  return (
+    <DndProvider backend={HTML5Backend}>
+      <div className="h-screen flex flex-col">
+        {/* Header Toolbar */}
+        <div className="border-b border-border p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-bold">Visual Builder</h1>
+              <div className="text-sm text-muted-foreground">
+                {components.length} component{components.length !== 1 ? 's' : ''}
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={handleSave}>
+                <Save className="h-4 w-4 mr-2" />
+                Save
+              </Button>
+              <Button variant="outline" size="sm" onClick={handlePreview}>
+                <Eye className="h-4 w-4 mr-2" />
+                Preview
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleExport}>
+                <Download className="h-4 w-4 mr-2" />
+                Export
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleClear}>
+                <Trash2 className="h-4 w-4 mr-2" />
+                Clear
+              </Button>
+            </div>
           </div>
-          <div className="space-y-2">
-            <h3 className="text-xl font-semibold">Start Building</h3>
-            <p className="text-muted-foreground">
-              Drag components from the left panel to start building your website
-            </p>
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 flex">
+          {/* Component Library Sidebar */}
+          <div className="border-r border-border">
+            <ComponentLibrary />
           </div>
-          <Button className="gradient-primary text-white">
-            Create New Page
-          </Button>
+
+          {/* Canvas Area */}
+          <div className="flex-1 flex flex-col">
+            <Canvas />
+          </div>
+
+          {/* Properties Panel */}
+          <div className="border-l border-border">
+            <PropertiesPanel />
+          </div>
         </div>
       </div>
-    </div>
+    </DndProvider>
   );
 }
