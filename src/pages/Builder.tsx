@@ -27,8 +27,13 @@ export default function Builder() {
     isLoading,
     undo, 
     redo,
-    setLoading
+    setLoading,
+    selectedComponentId,
+    selectComponent,
+    getSelectedComponent
   } = useBuilderStore();
+  
+  const selectedComponent = getSelectedComponent();
   const { manualSave } = useAutoSave('current-project'); // TODO: Get actual project ID
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -265,40 +270,49 @@ export default function Builder() {
 
           {/* Right Sidebar - Components & Properties */}
           <div className="w-80 border-l border-sidebar-border bg-sidebar flex flex-col">
-            {/* Component Library - Main Focus */}
-            <div className="flex-1 min-h-0">
-              <ComponentLibrary />
-            </div>
-            
-            {/* Selected Component Properties */}
-            <div className="h-64 border-t border-sidebar-border overflow-hidden">
-              <PropertiesPanel />
-            </div>
-            
-            {/* Quick Actions */}
-            <div className="border-t border-sidebar-border p-3 space-y-2 bg-sidebar-accent/10">
-              <div className="text-xs font-medium text-sidebar-foreground/70">Quick Tools</div>
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setShowVersionHistory(!showVersionHistory)}
-                  className={`text-xs justify-start ${showVersionHistory ? 'bg-sidebar-accent' : ''}`}
-                >
-                  <History className="h-3 w-3 mr-1" />
-                  History
-                </Button>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setShowSchemaVisualizer(!showSchemaVisualizer)}
-                  className={`text-xs justify-start ${showSchemaVisualizer ? 'bg-sidebar-accent' : ''}`}
-                >
-                  <Palette className="h-3 w-3 mr-1" />
-                  Schema
-                </Button>
-              </div>
-            </div>
+            {selectedComponentId ? (
+              <>
+                {/* Selected Component Info */}
+                <div className="p-3 bg-sidebar-accent/20 border-b border-sidebar-border">
+                  <div className="text-xs text-sidebar-foreground/70 mb-1">Selected Component</div>
+                  <div className="text-sm font-medium text-sidebar-foreground">
+                    {selectedComponent?.type || 'Unknown'} Component
+                  </div>
+                </div>
+                
+                {/* Selected Component Properties */}
+                <div className="flex-1 min-h-0">
+                  <PropertiesPanel />
+                </div>
+                
+                {/* Back to Components Button */}
+                <div className="border-t border-sidebar-border p-3">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => selectComponent(null)}
+                    className="w-full justify-start text-sidebar-foreground hover:bg-sidebar-accent"
+                  >
+                    ← Back to Components
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Component Library - Main Focus */}
+                <div className="flex-1 min-h-0">
+                  <ComponentLibrary />
+                </div>
+                
+                {/* Component Library Info */}
+                <div className="border-t border-sidebar-border p-3 bg-sidebar-accent/10">
+                  <div className="text-xs text-sidebar-foreground/70 mb-2">Available Components</div>
+                  <div className="text-xs text-sidebar-foreground/60">
+                    Drag components to the canvas to start building
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
