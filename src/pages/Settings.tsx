@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { User, Globe, Palette, Bell, Shield } from "lucide-react";
+import { useState } from "react";
 
 const settingsCategories = [
   {
@@ -29,44 +30,12 @@ const settingsCategories = [
 ];
 
 export default function Settings() {
-  return (
-    <div className="p-8 max-w-7xl mx-auto space-y-8">
-      {/* Header */}
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold">Settings</h1>
-        <p className="text-muted-foreground">
-          Manage your account, deployment, and preferences
-        </p>
-      </div>
+  const [selectedCategory, setSelectedCategory] = useState("Profile");
 
-      <div className="grid lg:grid-cols-3 gap-8">
-        {/* Settings Navigation */}
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold">Categories</h2>
-          <div className="space-y-2">
-            {settingsCategories.map((category) => (
-              <Card key={category.title} className="border-border cursor-pointer hover:shadow-elegant transition-smooth">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                      <category.icon className="h-5 w-5 text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="font-medium">{category.title}</h3>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {category.description}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-
-        {/* Settings Content */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Profile Settings */}
+  const renderSettingsContent = () => {
+    switch (selectedCategory) {
+      case "Profile":
+        return (
           <Card className="border-border">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -98,8 +67,10 @@ export default function Settings() {
               </Button>
             </CardContent>
           </Card>
+        );
 
-          {/* Deployment Settings */}
+      case "Deployment":
+        return (
           <Card className="border-border">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -138,8 +109,10 @@ export default function Settings() {
               </Button>
             </CardContent>
           </Card>
+        );
 
-          {/* Appearance Settings */}
+      case "Appearance":
+        return (
           <Card className="border-border">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -232,8 +205,10 @@ export default function Settings() {
               </div>
             </CardContent>
           </Card>
+        );
 
-          {/* Notifications */}
+      case "Notifications":
+        return (
           <Card className="border-border">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -271,6 +246,69 @@ export default function Settings() {
               </div>
             </CardContent>
           </Card>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="p-8 max-w-7xl mx-auto space-y-8">
+      {/* Header */}
+      <div className="space-y-2">
+        <h1 className="text-3xl font-bold">Settings</h1>
+        <p className="text-muted-foreground">
+          Manage your account, deployment, and preferences
+        </p>
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-8">
+        {/* Settings Navigation */}
+        <div className="space-y-4">
+          <h2 className="text-lg font-semibold">Categories</h2>
+          <div className="space-y-2">
+            {settingsCategories.map((category) => (
+              <Card 
+                key={category.title} 
+                className={`border-border cursor-pointer hover:shadow-elegant transition-smooth ${
+                  selectedCategory === category.title 
+                    ? 'border-primary bg-primary/5' 
+                    : ''
+                }`}
+                onClick={() => setSelectedCategory(category.title)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${
+                      selectedCategory === category.title 
+                        ? 'bg-primary text-white' 
+                        : 'bg-primary/10 text-primary'
+                    }`}>
+                      <category.icon className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className={`font-medium ${
+                        selectedCategory === category.title 
+                          ? 'text-primary' 
+                          : ''
+                      }`}>
+                        {category.title}
+                      </h3>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {category.description}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* Settings Content */}
+        <div className="lg:col-span-2">
+          {renderSettingsContent()}
         </div>
       </div>
     </div>

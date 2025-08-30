@@ -46,18 +46,57 @@ const AppRoutes = () => {
   }
 
   return (
-    <AppLayout>
-      <Routes>
-        <Route path="/auth" element={user ? <Navigate to="/projects" replace /> : <Auth />} />
-        <Route path="/" element={<Home />} />
-        <Route path="/builder" element={<Builder />} />
-        <Route path="/preview" element={<Preview />} />
-        <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
-        <Route path="/data" element={<ProtectedRoute><Data /></ProtectedRoute>} />
-        <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </AppLayout>
+    <Routes>
+      <Route path="/auth" element={user ? <Navigate to="/projects" replace /> : <Auth />} />
+      <Route path="/" element={<Home />} />
+      <Route 
+        path="/builder" 
+        element={
+          <AppLayout>
+            <Builder />
+          </AppLayout>
+        } 
+      />
+      <Route 
+        path="/preview" 
+        element={
+          <AppLayout>
+            <Preview />
+          </AppLayout>
+        } 
+      />
+      <Route 
+        path="/projects" 
+        element={
+          <AppLayout>
+            <ProtectedRoute>
+              <Projects />
+            </ProtectedRoute>
+          </AppLayout>
+        } 
+      />
+      <Route 
+        path="/data" 
+        element={
+          <AppLayout>
+            <ProtectedRoute>
+              <Data />
+            </ProtectedRoute>
+          </AppLayout>
+        } 
+      />
+      <Route 
+        path="/settings" 
+        element={
+          <AppLayout>
+            <ProtectedRoute>
+              <Settings />
+            </ProtectedRoute>
+          </AppLayout>
+        } 
+      />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
   );
 };
 
