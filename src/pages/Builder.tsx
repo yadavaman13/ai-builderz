@@ -7,14 +7,17 @@ import { ComponentLibrary } from '@/components/builder/ComponentLibrary';
 import { Canvas } from '@/components/builder/Canvas';
 import { PropertiesPanel } from '@/components/builder/PropertiesPanel';
 import { DatabaseBindingPanel } from '@/components/builder/DatabaseBindingPanel';
+import { DeploymentPanel } from '@/components/builder/DeploymentPanel';
 import { useBuilderStore } from '@/stores/builderStore';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
 
 export default function Builder() {
-  const { components, clearCanvas } = useBuilderStore();
+  const { components, clearCanvas, currentProjectId } = useBuilderStore();
   const { manualSave } = useAutoSave('current-project'); // TODO: Get actual project ID
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSave = async () => {
     const success = await manualSave();
@@ -27,18 +30,32 @@ export default function Builder() {
   };
 
   const handlePreview = () => {
-    // TODO: Navigate to preview with current state
-    toast({
-      title: "Preview",
-      description: "Opening preview in a new tab...",
-    });
+    // Navigate to preview page
+    navigate('/preview');
   };
 
   const handleExport = () => {
-    // TODO: Implement export functionality
+    // Generate project export
+    const projectData = {
+      components,
+      metadata: {
+        exportedAt: new Date().toISOString(),
+        componentCount: components.length,
+        projectId: currentProjectId
+      }
+    };
+    
+    const blob = new Blob([JSON.stringify(projectData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `project-export-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    
     toast({
-      title: "Export",
-      description: "Exporting your design...",
+      title: "Exported",
+      description: "Project exported successfully as JSON.",
     });
   };
 
@@ -101,8 +118,13 @@ export default function Builder() {
             <div className="flex-1">
               <PropertiesPanel />
             </div>
-            <div className="border-l border-border">
-              <DatabaseBindingPanel />
+            <div className="border-l border-border w-80 flex flex-col">
+              <div className="flex-1">
+                <DatabaseBindingPanel />
+              </div>
+              <div className="border-t border-border">
+                <DeploymentPanel />
+              </div>
             </div>
           </div>
         </div>

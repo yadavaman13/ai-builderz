@@ -5,3 +5,9 @@ verify_jwt = false
 
 [functions.create-table]
 verify_jwt = true
+
+[functions.deploy-to-vercel]
+verify_jwt = true
+
+[functions.deploy-to-netlify]
+verify_jwt = true
