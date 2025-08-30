@@ -6,6 +6,7 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { ComponentLibrary } from '@/components/builder/ComponentLibrary';
 import { Canvas } from '@/components/builder/Canvas';
 import { PropertiesPanel } from '@/components/builder/PropertiesPanel';
+import { DatabaseBindingPanel } from '@/components/builder/DatabaseBindingPanel';
 import { useBuilderStore } from '@/stores/builderStore';
 import { useToast } from "@/hooks/use-toast";
 
@@ -92,8 +93,13 @@ export default function Builder() {
           </div>
 
           {/* Properties Panel */}
-          <div className="border-l border-border">
-            <PropertiesPanel />
+          <div className="border-l border-border flex">
+            <div className="flex-1">
+              <PropertiesPanel />
+            </div>
+            <div className="border-l border-border">
+              <DatabaseBindingPanel />
+            </div>
           </div>
         </div>
       </div>
