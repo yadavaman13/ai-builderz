@@ -1,1 +1,7 @@
 project_id = "lxymvgqncwvpszvrjsnd"
+
+[functions.get-schema]
+verify_jwt = false
+
+[functions.create-table]
+verify_jwt = true

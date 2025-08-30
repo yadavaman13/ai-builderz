@@ -1,6 +1,8 @@
 import React, { useCallback, useRef } from 'react';
 import { useDrag } from 'react-dnd';
 import { BuilderComponent, useBuilderStore } from '@/stores/builderStore';
+import { useDatabaseStore } from '@/stores/databaseStore';
+import { ComponentActionExecutor } from './ComponentActionExecutor';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -199,7 +201,10 @@ const ComponentRenderer: React.FC<{ component: BuilderComponent }> = ({ componen
 
 export const CanvasComponent: React.FC<CanvasComponentProps> = ({ component, isSelected }) => {
   const { selectComponent, moveComponent } = useBuilderStore();
+  const { getBinding } = useDatabaseStore();
   const dragRef = useRef<HTMLDivElement>(null);
+
+  const hasBinding = !!getBinding(component.id);
 
   const [{ isDragging }, drag] = useDrag(() => ({
     type: 'canvas-component',
@@ -232,7 +237,7 @@ export const CanvasComponent: React.FC<CanvasComponentProps> = ({ component, isS
       }}
       className={`absolute cursor-pointer ${isDragging ? 'opacity-50' : ''} ${
         isSelected ? 'ring-2 ring-primary ring-offset-2' : ''
-      }`}
+      } ${hasBinding ? 'ring-1 ring-blue-400' : ''}`}
       style={{
         left: component.x,
         top: component.y,
@@ -243,7 +248,12 @@ export const CanvasComponent: React.FC<CanvasComponentProps> = ({ component, isS
       onClick={handleClick}
       onDragEnd={handleDragEnd}
     >
-      <ComponentRenderer component={component} />
+      <ComponentActionExecutor 
+        componentId={component.id}
+        componentType={component.type}
+      >
+        <ComponentRenderer component={component} />
+      </ComponentActionExecutor>
       
       {isSelected && (
         <>
@@ -256,6 +266,12 @@ export const CanvasComponent: React.FC<CanvasComponentProps> = ({ component, isS
           <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-primary border border-background cursor-sw-resize" />
           <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-primary border border-background cursor-se-resize" />
         </>
+      )}
+      
+      {hasBinding && (
+        <div className="absolute -top-2 -right-2 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+          <div className="w-2 h-2 bg-white rounded-full" />
+        </div>
       )}
     </div>
   );
