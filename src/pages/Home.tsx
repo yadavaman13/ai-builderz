@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowRight, Zap, Layers, Database, Sparkles, Menu, User } from "lucide-react";
+import { ArrowRight, Layers, Database, Sparkles, Menu, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import heroImage from "@/assets/hero-image.jpg";
@@ -134,17 +134,17 @@ export default function Home() {
                       Start Building <ArrowRight className="ml-2 h-5 w-5" />
                     </Link>
                   </Button>
-                  <Button 
-                    asChild 
-                    variant="outline" 
-                    size="lg" 
-                    className="border-2 hover:bg-primary/5 transition-all duration-300"
-                  >
-                    <Link to="/preview" className="text-lg px-8 py-4">
-                      <Zap className="mr-2 h-5 w-5" />
-                      View Demo
-                    </Link>
-                  </Button>
+                                     <Button 
+                     asChild 
+                     variant="outline" 
+                     size="lg" 
+                     className="border-2 hover:bg-primary/5 transition-all duration-300"
+                   >
+                     <Link to="/preview" className="text-lg px-8 py-4">
+                       <Layers className="mr-2 h-5 w-5" />
+                       View Demo
+                     </Link>
+                   </Button>
                 </div>
 
                 {/* Social Proof */}
@@ -272,16 +272,16 @@ export default function Home() {
             </div>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button 
-                asChild 
-                size="lg" 
-                className="gradient-primary text-white shadow-2xl hover:shadow-glow transition-all duration-300 transform hover:scale-105"
-              >
-                <Link to="/auth" className="text-lg px-8 py-4">
-                  <Zap className="mr-2 h-5 w-5" />
-                  Start Building Now
-                </Link>
-              </Button>
+                             <Button 
+                 asChild 
+                 size="lg" 
+                 className="gradient-primary text-white shadow-2xl hover:shadow-glow transition-all duration-300 transform hover:scale-105"
+               >
+                 <Link to="/auth" className="text-lg px-8 py-4">
+                   <Layers className="mr-2 h-5 w-5" />
+                   Start Building Now
+                 </Link>
+               </Button>
               
               <Button 
                 asChild 
