@@ -1,5 +1,7 @@
-import { Home, Layout, Database, Eye, Shield, Settings, Zap } from "lucide-react";
+import { Home, Layout, Database, Eye, Shield, Settings, Zap, FolderOpen, LogOut } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
 
 import {
   Sidebar,
@@ -10,15 +12,19 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarFooter,
   useSidebar,
 } from "@/components/ui/sidebar";
 
-const navigationItems = [
+const publicNavigationItems = [
   { title: "Home", url: "/", icon: Home },
+];
+
+const privateNavigationItems = [
+  { title: "Projects", url: "/projects", icon: FolderOpen },
   { title: "Builder", url: "/builder", icon: Layout },
   { title: "Data", url: "/data", icon: Database },
   { title: "Preview", url: "/preview", icon: Eye },
-  { title: "Auth", url: "/auth", icon: Shield },
   { title: "Settings", url: "/settings", icon: Settings },
 ];
 
@@ -27,12 +33,19 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const location = useLocation();
   const currentPath = location.pathname;
+  const { user, signOut } = useAuth();
+
+  const navigationItems = user ? privateNavigationItems : publicNavigationItems;
 
   const isActive = (path: string) => currentPath === path;
   const getNavCls = ({ isActive }: { isActive: boolean }) =>
     isActive 
       ? "bg-sidebar-accent text-sidebar-primary font-medium shadow-elegant" 
       : "hover:bg-sidebar-accent/50 transition-smooth";
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
 
   return (
     <Sidebar
@@ -76,6 +89,20 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      
+      {user && (
+        <SidebarFooter className="p-4 border-t border-sidebar-border">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={handleSignOut}
+            className="w-full justify-start text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50"
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            {!collapsed && "Sign Out"}
+          </Button>
+        </SidebarFooter>
+      )}
     </Sidebar>
   );
 }

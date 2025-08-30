@@ -47,7 +47,7 @@ export default function Home() {
                 
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Button asChild size="lg" className="gradient-primary text-white shadow-elegant hover:shadow-glow transition-smooth">
-                    <Link to="/builder">
+                    <Link to="/auth">
                       Start Building <ArrowRight className="ml-2 h-4 w-4" />
                     </Link>
                   </Button>
@@ -118,7 +118,7 @@ export default function Home() {
             </div>
             
             <Button asChild size="lg" className="gradient-primary text-white shadow-elegant hover:shadow-glow transition-smooth">
-              <Link to="/builder">
+              <Link to="/auth">
                 <Zap className="mr-2 h-4 w-4" />
                 Start Building Now
               </Link>
