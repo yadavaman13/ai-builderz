@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Palette, Download, Eye, Save, Undo, Redo, Trash2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Palette, Download, Eye, Save, Undo, Redo, Trash2, History, AlertTriangle, CheckCircle } from "lucide-react";
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { ComponentLibrary } from '@/components/builder/ComponentLibrary';
@@ -8,16 +9,31 @@ import { Canvas } from '@/components/builder/Canvas';
 import { PropertiesPanel } from '@/components/builder/PropertiesPanel';
 import { DatabaseBindingPanel } from '@/components/builder/DatabaseBindingPanel';
 import { DeploymentPanel } from '@/components/builder/DeploymentPanel';
+import { OnboardingFlow } from '@/components/builder/OnboardingFlow';
+import { VersionHistory } from '@/components/builder/VersionHistory';
+import { SchemaVisualizer } from '@/components/builder/SchemaVisualizer';
 import { useBuilderStore } from '@/stores/builderStore';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 
 export default function Builder() {
-  const { components, clearCanvas, currentProjectId } = useBuilderStore();
+  const { components, clearCanvas, currentProjectId, validateLayout, canUndo, undo } = useBuilderStore();
   const { manualSave } = useAutoSave('current-project'); // TODO: Get actual project ID
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showVersionHistory, setShowVersionHistory] = useState(false);
+  const [showSchemaVisualizer, setShowSchemaVisualizer] = useState(false);
+
+  // Check if user is new (no components and no previous projects)
+  useEffect(() => {
+    const hasSeenOnboarding = localStorage.getItem('hasSeenOnboarding');
+    if (!hasSeenOnboarding && components.length === 0) {
+      setShowOnboarding(true);
+    }
+  }, [components.length]);
 
   const handleSave = async () => {
     const success = await manualSave();
@@ -30,8 +46,41 @@ export default function Builder() {
   };
 
   const handlePreview = () => {
-    // Navigate to preview page
+    // Validate layout before preview
+    const { errors, warnings } = validateLayout();
+    
+    if (errors.length > 0) {
+      toast({
+        title: "Cannot Preview",
+        description: `${errors.length} error(s) found. Please fix them first.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (warnings.length > 0) {
+      toast({
+        title: "Layout Warnings",
+        description: `${warnings.length} warning(s) found. Preview may not be optimal.`,
+      });
+    }
+    
     navigate('/preview');
+  };
+
+  const handleUndo = () => {
+    if (canUndo) {
+      undo();
+      toast({
+        title: "Undone",
+        description: "Reverted to previous state.",
+      });
+    }
+  };
+
+  const handleCompleteOnboarding = () => {
+    localStorage.setItem('hasSeenOnboarding', 'true');
+    setShowOnboarding(false);
   };
 
   const handleExport = () => {
@@ -85,6 +134,16 @@ export default function Builder() {
                 <Save className="h-4 w-4 mr-2" />
                 Save
               </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleUndo}
+                disabled={!canUndo}
+                title="Undo last action"
+              >
+                <Undo className="h-4 w-4 mr-2" />
+                Undo
+              </Button>
               <Button variant="outline" size="sm" onClick={handlePreview}>
                 <Eye className="h-4 w-4 mr-2" />
                 Preview
@@ -92,6 +151,24 @@ export default function Builder() {
               <Button variant="outline" size="sm" onClick={handleExport}>
                 <Download className="h-4 w-4 mr-2" />
                 Export
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowVersionHistory(!showVersionHistory)}
+                className={showVersionHistory ? 'bg-accent' : ''}
+              >
+                <History className="h-4 w-4 mr-2" />
+                History
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setShowSchemaVisualizer(!showSchemaVisualizer)}
+                className={showSchemaVisualizer ? 'bg-accent' : ''}
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                Schema
               </Button>
               <Button variant="outline" size="sm" onClick={handleClear}>
                 <Trash2 className="h-4 w-4 mr-2" />
@@ -113,21 +190,43 @@ export default function Builder() {
             <Canvas />
           </div>
 
-          {/* Properties Panel */}
+          {/* Right Panels */}
           <div className="border-l border-border flex">
             <div className="flex-1">
               <PropertiesPanel />
             </div>
             <div className="border-l border-border w-80 flex flex-col">
+              {/* Version History Panel (collapsible) */}
+              {showVersionHistory && (
+                <div className="border-b border-border">
+                  <VersionHistory />
+                </div>
+              )}
+              
+              {/* Schema Visualizer Panel (collapsible) */}
+              {showSchemaVisualizer && (
+                <div className="border-b border-border">
+                  <SchemaVisualizer />
+                </div>
+              )}
+              
+              {/* Database Binding Panel */}
               <div className="flex-1">
                 <DatabaseBindingPanel />
               </div>
+              
+              {/* Deployment Panel */}
               <div className="border-t border-border">
                 <DeploymentPanel />
               </div>
             </div>
           </div>
         </div>
+        
+        {/* Onboarding Flow */}
+        {showOnboarding && (
+          <OnboardingFlow onComplete={handleCompleteOnboarding} />
+        )}
       </div>
     </DndProvider>
   );

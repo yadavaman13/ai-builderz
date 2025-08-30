@@ -72,14 +72,22 @@ export const Canvas: React.FC = () => {
         ))}
         
         {isOver && (
-          <div className="absolute inset-0 pointer-events-none border-2 border-dashed border-primary/50 bg-primary/5 rounded-lg" />
+          <div className="absolute inset-0 pointer-events-none drop-zone-active rounded-lg animate-fade-in" />
         )}
         
         {components.length === 0 && !isOver && (
-          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
-            <div className="text-center">
-              <p className="text-lg font-medium mb-2">Drop components here</p>
-              <p className="text-sm">Drag components from the sidebar to start building</p>
+          <div className="absolute inset-0 flex items-center justify-center text-muted-foreground animate-fade-in">
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 mx-auto bg-gradient-primary rounded-full flex items-center justify-center mb-4">
+                <div className="w-8 h-8 border-2 border-dashed border-white rounded" />
+              </div>
+              <div>
+                <p className="text-lg font-medium mb-2">Drop components here</p>
+                <p className="text-sm">Drag components from the sidebar to start building</p>
+              </div>
+              <div className="text-xs text-muted-foreground">
+                💡 Tip: Select components to customize properties
+              </div>
             </div>
           </div>
         )}

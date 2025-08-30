@@ -28,10 +28,20 @@ export interface BuilderComponent {
   children?: BuilderComponent[];
 }
 
+interface ProjectVersion {
+  id: string;
+  timestamp: Date;
+  components: BuilderComponent[];
+  description: string;
+}
+
 interface BuilderState {
   components: BuilderComponent[];
   selectedComponentId: string | null;
   currentProjectId: string | null;
+  versions: ProjectVersion[];
+  canUndo: boolean;
+  canRedo: boolean;
   
   // Actions
   addComponent: (component: Omit<BuilderComponent, 'id'>) => void;
@@ -43,6 +53,15 @@ interface BuilderState {
   clearCanvas: () => void;
   setProject: (projectId: string) => void;
   getSelectedComponent: () => BuilderComponent | null;
+  
+  // Version control
+  saveVersion: (description: string) => void;
+  restoreVersion: (versionId: string) => void;
+  undo: () => void;
+  redo: () => void;
+  
+  // Validation
+  validateLayout: () => { errors: string[]; warnings: string[] };
 }
 
 export const useBuilderStore = create<BuilderState>()(
@@ -51,6 +70,9 @@ export const useBuilderStore = create<BuilderState>()(
       components: [],
       selectedComponentId: null,
       currentProjectId: null,
+      versions: [],
+      canUndo: false,
+      canRedo: false,
 
       addComponent: (component) => {
         const newComponent: BuilderComponent = {
@@ -61,6 +83,9 @@ export const useBuilderStore = create<BuilderState>()(
           components: [...state.components, newComponent],
           selectedComponentId: newComponent.id,
         }));
+        
+        // Auto-save version on significant changes
+        get().saveVersion(`Added ${component.type} component`);
       },
 
       updateComponent: (id, updates) => {
@@ -72,10 +97,15 @@ export const useBuilderStore = create<BuilderState>()(
       },
 
       deleteComponent: (id) => {
+        const componentToDelete = get().components.find(comp => comp.id === id);
         set((state) => ({
           components: state.components.filter((comp) => comp.id !== id),
           selectedComponentId: state.selectedComponentId === id ? null : state.selectedComponentId,
         }));
+        
+        if (componentToDelete) {
+          get().saveVersion(`Deleted ${componentToDelete.type} component`);
+        }
       },
 
       selectComponent: (id) => {
@@ -100,6 +130,7 @@ export const useBuilderStore = create<BuilderState>()(
 
       clearCanvas: () => {
         set({ components: [], selectedComponentId: null });
+        get().saveVersion('Cleared canvas');
       },
 
       setProject: (projectId) => {
@@ -109,6 +140,89 @@ export const useBuilderStore = create<BuilderState>()(
       getSelectedComponent: () => {
         const state = get();
         return state.components.find(comp => comp.id === state.selectedComponentId) || null;
+      },
+
+      saveVersion: (description) => {
+        const state = get();
+        const newVersion: ProjectVersion = {
+          id: uuidv4(),
+          timestamp: new Date(),
+          components: [...state.components],
+          description,
+        };
+        
+        set((prevState) => ({
+          versions: [newVersion, ...prevState.versions.slice(0, 19)], // Keep last 20 versions
+          canUndo: true,
+        }));
+      },
+
+      restoreVersion: (versionId) => {
+        const state = get();
+        const version = state.versions.find(v => v.id === versionId);
+        if (version) {
+          set({
+            components: [...version.components],
+            selectedComponentId: null,
+          });
+        }
+      },
+
+      undo: () => {
+        const state = get();
+        if (state.versions.length > 0) {
+          const previousVersion = state.versions[0];
+          set({
+            components: [...previousVersion.components],
+            selectedComponentId: null,
+          });
+        }
+      },
+
+      redo: () => {
+        // Implement redo logic if needed
+      },
+
+      validateLayout: () => {
+        const state = get();
+        const errors: string[] = [];
+        const warnings: string[] = [];
+
+        // Check for overlapping components
+        for (let i = 0; i < state.components.length; i++) {
+          for (let j = i + 1; j < state.components.length; j++) {
+            const comp1 = state.components[i];
+            const comp2 = state.components[j];
+            
+            if (
+              comp1.x < comp2.x + comp2.width &&
+              comp1.x + comp1.width > comp2.x &&
+              comp1.y < comp2.y + comp2.height &&
+              comp1.y + comp1.height > comp2.y
+            ) {
+              warnings.push(`Components "${comp1.type}" and "${comp2.type}" are overlapping`);
+            }
+          }
+        }
+
+        // Check for components outside canvas bounds
+        state.components.forEach(comp => {
+          if (comp.x < 0 || comp.y < 0) {
+            warnings.push(`Component "${comp.type}" is outside canvas bounds`);
+          }
+        });
+
+        // Check for missing required properties
+        state.components.forEach(comp => {
+          if (comp.type === 'text' && !comp.props.text) {
+            warnings.push(`Text component missing content`);
+          }
+          if (comp.type === 'image' && !comp.props.src) {
+            warnings.push(`Image component missing source`);
+          }
+        });
+
+        return { errors, warnings };
       },
     }),
     {

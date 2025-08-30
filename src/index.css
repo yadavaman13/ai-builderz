@@ -89,4 +89,34 @@
   .transition-smooth {
     transition: var(--transition-smooth);
   }
+
+  /* Interactive Elements */
+  .hover-scale {
+    @apply transition-transform duration-200 hover:scale-105;
+  }
+  
+  .hover-lift {
+    @apply transition-all duration-200 hover:-translate-y-1 hover:shadow-elegant;
+  }
+  
+  .pulse-ring {
+    @apply animate-pulse-ring;
+  }
+  
+  /* Drag and Drop States */
+  .drag-preview {
+    @apply opacity-50 scale-95 rotate-3 transition-all duration-200;
+  }
+  
+  .drop-zone-active {
+    @apply bg-primary/10 border-primary border-2 border-dashed animate-pulse;
+  }
+  
+  .component-hover {
+    @apply ring-2 ring-primary/30 ring-offset-2 transition-all duration-200;
+  }
+  
+  .component-selected {
+    @apply ring-2 ring-primary ring-offset-2 shadow-elegant transition-all duration-200;
+  }
 }

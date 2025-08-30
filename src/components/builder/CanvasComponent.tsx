@@ -1,11 +1,14 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { useDrag } from 'react-dnd';
 import { BuilderComponent, useBuilderStore } from '@/stores/builderStore';
 import { useDatabaseStore } from '@/stores/databaseStore';
 import { ComponentActionExecutor } from './ComponentActionExecutor';
+import { DeletionConfirmDialog } from './DeletionConfirmDialog';
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
+import { Trash2, Move } from 'lucide-react';
 
 interface CanvasComponentProps {
   component: BuilderComponent;
@@ -200,11 +203,14 @@ const ComponentRenderer: React.FC<{ component: BuilderComponent }> = ({ componen
 };
 
 export const CanvasComponent: React.FC<CanvasComponentProps> = ({ component, isSelected }) => {
-  const { selectComponent, moveComponent } = useBuilderStore();
-  const { getBinding } = useDatabaseStore();
+  const { selectComponent, moveComponent, deleteComponent } = useBuilderStore();
+  const { getBinding, removeBinding } = useDatabaseStore();
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
   const dragRef = useRef<HTMLDivElement>(null);
 
-  const hasBinding = !!getBinding(component.id);
+  const binding = getBinding(component.id);
+  const hasBinding = !!binding;
 
   const [{ isDragging }, drag] = useDrag(() => ({
     type: 'canvas-component',
@@ -219,6 +225,21 @@ export const CanvasComponent: React.FC<CanvasComponentProps> = ({ component, isS
     selectComponent(component.id);
   }, [selectComponent, component.id]);
 
+  const handleDelete = () => {
+    if (hasBinding) {
+      setShowDeleteDialog(true);
+    } else {
+      handleConfirmDelete();
+    }
+  };
+
+  const handleConfirmDelete = () => {
+    if (binding) {
+      removeBinding(component.id);
+    }
+    deleteComponent(component.id);
+  };
+
   // Handle drag end to update position
   const handleDragEnd = useCallback((e: any) => {
     if (!dragRef.current) return;
@@ -230,49 +251,108 @@ export const CanvasComponent: React.FC<CanvasComponentProps> = ({ component, isS
   }, [moveComponent, component.id]);
 
   return (
-    <div
-      ref={(node) => {
-        dragRef.current = node;
-        drag(node);
-      }}
-      className={`absolute cursor-pointer ${isDragging ? 'opacity-50' : ''} ${
-        isSelected ? 'ring-2 ring-primary ring-offset-2' : ''
-      } ${hasBinding ? 'ring-1 ring-blue-400' : ''}`}
-      style={{
-        left: component.x,
-        top: component.y,
-        width: component.width,
-        height: component.height,
-        zIndex: isSelected ? 10 : 1,
-      }}
-      onClick={handleClick}
-      onDragEnd={handleDragEnd}
-    >
-      <ComponentActionExecutor 
-        componentId={component.id}
-        componentType={component.type}
+    <TooltipProvider>
+      <div
+        ref={(node) => {
+          dragRef.current = node;
+          drag(node);
+        }}
+        className={`absolute cursor-pointer transition-all duration-200 ${
+          isDragging ? 'drag-preview' : ''
+        } ${
+          isSelected ? 'component-selected' : isHovered ? 'component-hover' : ''
+        } ${hasBinding ? 'ring-1 ring-blue-400' : ''} animate-fade-in`}
+        style={{
+          left: component.x,
+          top: component.y,
+          width: component.width,
+          height: component.height,
+          zIndex: isSelected ? 10 : 1,
+        }}
+        onClick={handleClick}
+        onDragEnd={handleDragEnd}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
       >
-        <ComponentRenderer component={component} />
-      </ComponentActionExecutor>
-      
-      {isSelected && (
-        <>
-          {/* Selection outline */}
-          <div className="absolute inset-0 border-2 border-primary pointer-events-none" />
-          
-          {/* Resize handles */}
-          <div className="absolute -top-1 -left-1 w-2 h-2 bg-primary border border-background cursor-nw-resize" />
-          <div className="absolute -top-1 -right-1 w-2 h-2 bg-primary border border-background cursor-ne-resize" />
-          <div className="absolute -bottom-1 -left-1 w-2 h-2 bg-primary border border-background cursor-sw-resize" />
-          <div className="absolute -bottom-1 -right-1 w-2 h-2 bg-primary border border-background cursor-se-resize" />
-        </>
-      )}
-      
-      {hasBinding && (
-        <div className="absolute -top-2 -right-2 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
-          <div className="w-2 h-2 bg-white rounded-full" />
-        </div>
-      )}
-    </div>
+        <ComponentActionExecutor 
+          componentId={component.id}
+          componentType={component.type}
+        >
+          <ComponentRenderer component={component} />
+        </ComponentActionExecutor>
+        
+        {isSelected && (
+          <div className="animate-fade-in">
+            {/* Selection outline with enhanced visibility */}
+            <div className="absolute inset-0 border-2 border-primary shadow-glow pointer-events-none rounded-sm" />
+            
+            {/* Enhanced resize handles with tooltips */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="absolute -top-2 -left-2 w-3 h-3 bg-primary border-2 border-background cursor-nw-resize rounded-sm hover:scale-110 transition-transform shadow-elegant" />
+              </TooltipTrigger>
+              <TooltipContent>Resize</TooltipContent>
+            </Tooltip>
+            
+            <div className="absolute -top-2 -right-2 w-3 h-3 bg-primary border-2 border-background cursor-ne-resize rounded-sm hover:scale-110 transition-transform shadow-elegant" />
+            <div className="absolute -bottom-2 -left-2 w-3 h-3 bg-primary border-2 border-background cursor-sw-resize rounded-sm hover:scale-110 transition-transform shadow-elegant" />
+            <div className="absolute -bottom-2 -right-2 w-3 h-3 bg-primary border-2 border-background cursor-se-resize rounded-sm hover:scale-110 transition-transform shadow-elegant" />
+            
+            {/* Action toolbar */}
+            <div className="absolute -top-10 left-0 flex gap-1 animate-slide-in-right">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    className="h-6 px-2 shadow-elegant hover-lift"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDelete();
+                    }}
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  Delete component {hasBinding ? '(has database binding)' : ''}
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </div>
+        )}
+        
+        {hasBinding && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="absolute -top-2 -right-2 w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center shadow-elegant animate-pulse-ring">
+                <div className="w-2 h-2 bg-white rounded-full" />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <div className="space-y-1">
+                <p>Database connected</p>
+                <p className="text-xs text-muted-foreground">
+                  Action: {binding?.action || 'Unknown'}
+                </p>
+              </div>
+            </TooltipContent>
+          </Tooltip>
+        )}
+        
+        <DeletionConfirmDialog
+          open={showDeleteDialog}
+          onOpenChange={setShowDeleteDialog}
+          componentType={component.type}
+          componentId={component.id}
+          hasBindings={hasBinding}
+          bindingDetails={binding ? {
+            tables: [binding.table || 'Unknown'],
+            actions: [binding.action || 'Unknown']
+          } : undefined}
+          onConfirm={handleConfirmDelete}
+        />
+      </div>
+    </TooltipProvider>
   );
 };
