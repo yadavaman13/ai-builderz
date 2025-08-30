@@ -10,6 +10,7 @@ import { PropertiesPanel } from '@/components/builder/PropertiesPanel';
 import { OnboardingFlow } from '@/components/builder/OnboardingFlow';
 import { VersionHistory } from '@/components/builder/VersionHistory';
 import { SchemaVisualizer } from '@/components/builder/SchemaVisualizer';
+import { ExportDialog } from '@/components/builder/ExportDialog';
 import { useBuilderStore } from '@/stores/builderStore';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { useToast } from "@/hooks/use-toast";
@@ -157,7 +158,7 @@ export default function Builder() {
               <div>
                 <h1 className="text-xl font-bold">Visual Builder</h1>
                 <div className="text-sm text-muted-foreground">
-                  {components.length} component{components.length !== 1 ? 's' : ''} on canvas
+                  {currentProjectId ? `Project: ${currentProjectId}` : 'Untitled Project'} • {components.length} component{components.length !== 1 ? 's' : ''}
                 </div>
               </div>
             </div>
@@ -212,19 +213,7 @@ export default function Builder() {
                 Preview
               </Button>
 
-              <Button
-                variant="outline"
-                onClick={handleExport}
-                disabled={isLoading}
-                className="hover-lift"
-              >
-                {isLoading ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
-                ) : (
-                  <Download className="h-4 w-4 mr-2" />
-                )}
-                Export
-              </Button>
+              <ExportDialog />
 
               <Button
                 variant="outline"
@@ -281,8 +270,14 @@ export default function Builder() {
                 </div>
                 
                 {/* Selected Component Properties */}
-                <div className="flex-1 min-h-0">
+                <div className="flex-1 min-h-0 relative">
                   <PropertiesPanel />
+                  {/* Active Tab Indicator */}
+                  <div className="absolute top-4 right-4 z-10">
+                    <div className="px-2 py-1 bg-primary/10 border border-primary/30 rounded-md">
+                      <span className="text-xs font-medium text-primary">Properties</span>
+                    </div>
+                  </div>
                 </div>
                 
                 {/* Back to Components Button */}
@@ -300,8 +295,14 @@ export default function Builder() {
             ) : (
               <>
                 {/* Component Library - Main Focus */}
-                <div className="flex-1 min-h-0">
+                <div className="flex-1 min-h-0 relative">
                   <ComponentLibrary />
+                  {/* Active Tab Indicator */}
+                  <div className="absolute top-4 right-4 z-10">
+                    <div className="px-2 py-1 bg-primary/10 border border-primary/30 rounded-md">
+                      <span className="text-xs font-medium text-primary">Components</span>
+                    </div>
+                  </div>
                 </div>
                 
                 {/* Component Library Info */}

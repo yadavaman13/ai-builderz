@@ -136,4 +136,62 @@
     .sidebar-dark {
       @apply bg-sidebar text-sidebar-foreground border-sidebar-border;
     }
+    
+    /* Grid pattern for backgrounds */
+    .bg-grid-pattern {
+      background-image: 
+        linear-gradient(hsl(var(--border)) 1px, transparent 1px),
+        linear-gradient(90deg, hsl(var(--border)) 1px, transparent 1px);
+      background-size: 20px 20px;
+    }
+
+    /* Enhanced animations */
+    @keyframes pulse-ring {
+      0% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(2);
+        opacity: 0;
+      }
+    }
+
+    .animate-pulse-ring {
+      animation: pulse-ring 2s infinite;
+    }
+
+    /* Gradient text utility */
+    .gradient-text {
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* Sidebar theme extensions */
+    .sidebar-theme-enhanced {
+      @apply bg-sidebar text-sidebar-foreground;
+      
+      /* Enhanced scrollbars */
+      scrollbar-width: thin;
+      scrollbar-color: hsl(var(--sidebar-accent)) transparent;
+    }
+
+    .sidebar-theme-enhanced::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .sidebar-theme-enhanced::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .sidebar-theme-enhanced::-webkit-scrollbar-thumb {
+      background-color: hsl(var(--sidebar-accent));
+      border-radius: 3px;
+    }
+
+    .sidebar-theme-enhanced::-webkit-scrollbar-thumb:hover {
+      background-color: hsl(var(--sidebar-primary));
+    }
   }
