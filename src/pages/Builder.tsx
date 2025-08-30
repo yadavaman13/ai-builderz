@@ -179,44 +179,49 @@ export default function Builder() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 flex">
-          {/* Component Library Sidebar */}
-          <div className="border-r border-border">
-            <ComponentLibrary />
-          </div>
-
-          {/* Canvas Area */}
-          <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex overflow-hidden">
+          {/* Canvas Area - Maximum Width */}
+          <div className="flex-1 flex flex-col min-w-0">
             <Canvas />
           </div>
 
-          {/* Right Panels */}
-          <div className="border-l border-border flex">
-            <div className="flex-1">
-              <PropertiesPanel />
+          {/* Right Resizable Sidebar */}
+          <div className="border-l border-sidebar-border bg-sidebar flex w-80 min-w-[320px] max-w-[500px]">
+            <div className="flex-1 flex flex-col overflow-hidden">
+              {/* Component Library */}
+              <div className="flex-1 min-h-0">
+                <ComponentLibrary />
+              </div>
+              
+              {/* Properties Panel */}
+              <div className="border-t border-sidebar-border">
+                <PropertiesPanel />
+              </div>
             </div>
-            <div className="border-l border-border w-80 flex flex-col">
+            
+            {/* Additional Panels */}
+            <div className="border-l border-sidebar-border w-72 flex flex-col overflow-hidden">
               {/* Version History Panel (collapsible) */}
               {showVersionHistory && (
-                <div className="border-b border-border">
+                <div className="border-b border-sidebar-border bg-sidebar">
                   <VersionHistory />
                 </div>
               )}
               
               {/* Schema Visualizer Panel (collapsible) */}
               {showSchemaVisualizer && (
-                <div className="border-b border-border">
+                <div className="border-b border-sidebar-border bg-sidebar">
                   <SchemaVisualizer />
                 </div>
               )}
               
               {/* Database Binding Panel */}
-              <div className="flex-1">
+              <div className="flex-1 min-h-0 bg-sidebar">
                 <DatabaseBindingPanel />
               </div>
               
               {/* Deployment Panel */}
-              <div className="border-t border-border">
+              <div className="border-t border-sidebar-border bg-sidebar">
                 <DeploymentPanel />
               </div>
             </div>

@@ -103,20 +103,38 @@
     @apply animate-pulse-ring;
   }
   
-  /* Drag and Drop States */
-  .drag-preview {
-    @apply opacity-50 scale-95 rotate-3 transition-all duration-200;
-  }
-  
-  .drop-zone-active {
-    @apply bg-primary/10 border-primary border-2 border-dashed animate-pulse;
-  }
-  
-  .component-hover {
-    @apply ring-2 ring-primary/30 ring-offset-2 transition-all duration-200;
-  }
-  
-  .component-selected {
-    @apply ring-2 ring-primary ring-offset-2 shadow-elegant transition-all duration-200;
+    .drag-preview {
+      @apply opacity-50 scale-95 rotate-1 transition-all duration-200;
+    }
+    
+    .drop-zone-active {
+      @apply bg-primary/5 border-primary border-2 border-dashed animate-pulse;
+    }
+    
+    .component-hover {
+      @apply ring-2 ring-primary/30 ring-offset-2 transition-all duration-200;
+    }
+    
+    .component-selected {
+      @apply ring-2 ring-primary ring-offset-2 shadow-elegant transition-all duration-200;
+    }
+
+    /* Responsive Canvas */
+    .canvas-mobile {
+      @apply max-w-sm mx-auto;
+    }
+    
+    .canvas-tablet {
+      @apply max-w-2xl mx-auto;
+    }
+    
+    .canvas-desktop {
+      @apply w-full;
+    }
+
+    /* Sidebar Improvements */
+    .sidebar-dark {
+      @apply bg-sidebar text-sidebar-foreground border-sidebar-border;
+    }
   }
 }

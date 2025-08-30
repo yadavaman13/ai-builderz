@@ -144,7 +144,7 @@ export default function Settings() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Palette className="h-5 w-5" />
-                Appearance
+                Theme & Appearance
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
@@ -157,6 +157,52 @@ export default function Settings() {
                 </div>
                 <Switch defaultChecked />
               </div>
+              
+              {/* Theme Color Customization */}
+              <div className="space-y-4">
+                <div>
+                  <Label className="text-sm font-medium">Theme Colors</Label>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Customize your builder's color scheme
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="primary-color" className="text-xs">Primary</Label>
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded border bg-primary"></div>
+                      <Input id="primary-color" value="#7C3AED" className="h-8 text-xs" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="secondary-color" className="text-xs">Secondary</Label>
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded border bg-secondary"></div>
+                      <Input id="secondary-color" value="#374151" className="h-8 text-xs" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="accent-color" className="text-xs">Accent</Label>
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded border bg-accent"></div>
+                      <Input id="accent-color" value="#0EA5E9" className="h-8 text-xs" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="background-color" className="text-xs">Background</Label>
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded border bg-background"></div>
+                      <Input id="background-color" value="#0F172A" className="h-8 text-xs" />
+                    </div>
+                  </div>
+                </div>
+                
+                <Button variant="outline" size="sm" className="w-full">
+                  Reset to Default
+                </Button>
+              </div>
+              
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <Label>Compact Mode</Label>
@@ -171,6 +217,15 @@ export default function Settings() {
                   <Label>Animations</Label>
                   <p className="text-sm text-muted-foreground">
                     Enable smooth transitions and animations
+                  </p>
+                </div>
+                <Switch defaultChecked />
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <Label>Grid Snapping</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Snap components to grid when dragging
                   </p>
                 </div>
                 <Switch defaultChecked />
