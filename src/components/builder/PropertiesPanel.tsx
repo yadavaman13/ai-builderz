@@ -6,7 +6,7 @@ import { Slider } from "@/components/ui/slider";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useBuilderStore } from '@/stores/builderStore';
-import { Trash2, Settings, Palette } from "lucide-react";
+import { Trash2, Palette } from "lucide-react";
 import { useState } from "react";
 
 export const PropertiesPanel: React.FC = () => {
@@ -27,7 +27,6 @@ export const PropertiesPanel: React.FC = () => {
         
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center text-sidebar-foreground/50">
-            <Settings className="h-12 w-12 mx-auto mb-3 opacity-30" />
             <p className="text-sm">No component selected</p>
           </div>
         </div>
@@ -90,7 +89,6 @@ export const PropertiesPanel: React.FC = () => {
                 : 'text-sidebar-foreground/70 hover:text-sidebar-foreground'
             }`}
           >
-            <Settings className="h-3 w-3 mr-1" />
             Properties
           </Button>
           <Button

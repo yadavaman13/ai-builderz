@@ -33,11 +33,12 @@ export default function Builder() {
     setLoading,
     selectedComponentId,
     selectComponent,
-    getSelectedComponent
+    getSelectedComponent,
+    setProject
   } = useBuilderStore();
   
   const selectedComponent = getSelectedComponent();
-  const { manualSave } = useAutoSave('current-project'); // TODO: Get actual project ID
+  const { manualSave } = useAutoSave(currentProjectId || undefined);
   const { toast } = useToast();
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -45,6 +46,15 @@ export default function Builder() {
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [showSchemaVisualizer, setShowSchemaVisualizer] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'failed'>('idle');
+
+  // Initialize project ID if none exists
+  useEffect(() => {
+    if (!currentProjectId) {
+      const newProjectId = `project-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      setProject(newProjectId);
+    }
+  }, [currentProjectId, setProject]);
 
   // Check if user is new (no components and no previous projects)
   useEffect(() => {
@@ -53,6 +63,23 @@ export default function Builder() {
       setShowOnboarding(true);
     }
   }, [components.length]);
+
+  // Monitor auto-save status
+  useEffect(() => {
+    if (!user || !currentProjectId) {
+      setAutoSaveStatus('failed');
+      return;
+    }
+    
+    if (components.length > 0) {
+      setAutoSaveStatus('saving');
+      const timer = setTimeout(() => {
+        setAutoSaveStatus('saved');
+        setTimeout(() => setAutoSaveStatus('idle'), 2000);
+      }, 2000);
+      return () => clearTimeout(timer);
+    }
+  }, [components, user, currentProjectId]);
 
   const handleSave = async () => {
     if (!user) {
@@ -168,6 +195,26 @@ export default function Builder() {
                 <h1 className="text-xl font-bold">Visual Builder</h1>
                 <div className="text-sm text-muted-foreground">
                   {currentProjectId ? `Project: ${currentProjectId}` : 'Untitled Project'} • {components.length} component{components.length !== 1 ? 's' : ''}
+                </div>
+                {/* Auto-save Status Indicator */}
+                <div className="flex items-center gap-2 mt-1">
+                  <div className={`w-2 h-2 rounded-full ${
+                    autoSaveStatus === 'saving' ? 'bg-yellow-500 animate-pulse' :
+                    autoSaveStatus === 'saved' ? 'bg-green-500' :
+                    autoSaveStatus === 'failed' ? 'bg-red-500' :
+                    'bg-gray-400'
+                  }`} />
+                  <span className={`text-xs ${
+                    autoSaveStatus === 'saving' ? 'text-yellow-600' :
+                    autoSaveStatus === 'saved' ? 'text-green-600' :
+                    autoSaveStatus === 'failed' ? 'text-red-600' :
+                    'text-muted-foreground'
+                  }`}>
+                    {autoSaveStatus === 'saving' ? 'Auto-saving...' :
+                     autoSaveStatus === 'saved' ? 'Auto-saved' :
+                     autoSaveStatus === 'failed' ? 'Auto-save failed' :
+                     'Ready'}
+                  </span>
                 </div>
               </div>
             </div>

@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState, memo } from 'react';
+import React, { useCallback, useRef, useState, memo, useEffect } from 'react';
 import { useDrag } from 'react-dnd';
 import { BuilderComponent, useBuilderStore } from '@/stores/builderStore';
 import { useDatabaseStore } from '@/stores/databaseStore';
@@ -85,7 +85,22 @@ export const CanvasComponent: React.FC<CanvasComponentProps> = memo(({ component
 
   // Enhanced drag functionality with snap-to-grid
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (e.target !== e.currentTarget) return;
+    // Don't start drag if clicking on resize handles, action buttons, or other interactive elements
+    const target = e.target as HTMLElement;
+    if (target.closest('[data-no-drag]') || 
+        target.closest('button') || 
+        target.closest('.resize-handle') ||
+        target.closest('.action-toolbar')) {
+      return;
+    }
+    
+    // Don't start drag if clicking on inline editor
+    if (isEditing) {
+      return;
+    }
+    
+    e.stopPropagation();
+    e.preventDefault();
     
     setIsDragging(true);
     const startX = e.clientX - component.x;
@@ -102,15 +117,24 @@ export const CanvasComponent: React.FC<CanvasComponentProps> = memo(({ component
       setIsDragging(false);
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('mouseleave', handleMouseUp);
     };
 
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
-  }, [component.id, component.x, component.y, moveComponent, snapToGrid]);
+    document.addEventListener('mouseleave', handleMouseUp);
+  }, [component.id, component.x, component.y, moveComponent, snapToGrid, isEditing]);
 
   // Enhanced resize functionality
   const handleResizeStart = useCallback((e: React.MouseEvent, direction: string) => {
     e.stopPropagation();
+    e.preventDefault();
+    
+    // Ensure component is selected during resize
+    if (!isSelected) {
+      selectComponent(component.id);
+    }
+    
     setIsResizing(true);
     
     resizeStartRef.current = {
@@ -134,8 +158,9 @@ export const CanvasComponent: React.FC<CanvasComponentProps> = memo(({ component
       if (direction.includes('s')) newHeight += deltaY;
       if (direction.includes('n')) newHeight -= deltaY;
       
-      newWidth = Math.max(20, newWidth);
-      newHeight = Math.max(20, newHeight);
+      // Enforce minimum sizes to accommodate controls
+      newWidth = Math.max(200, newWidth);
+      newHeight = Math.max(120, newHeight);
       
       resizeComponent(component.id, newWidth, newHeight);
     };
@@ -145,11 +170,29 @@ export const CanvasComponent: React.FC<CanvasComponentProps> = memo(({ component
       resizeStartRef.current = null;
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('mouseleave', handleMouseUp);
     };
 
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mouseup', handleMouseUp);
-  }, [component.id, component.width, component.height, resizeComponent]);
+    document.addEventListener('mouseleave', handleMouseUp);
+  }, [component.id, component.width, component.height, resizeComponent, isSelected, selectComponent]);
+
+  // Calculate control positioning based on available space
+  const hasEnoughHeight = component.height >= 120;
+  const hasEnoughWidth = component.width >= 200;
+
+  // Auto-resize component if it's too small to accommodate controls
+  useEffect(() => {
+    if (isSelected && (component.width < 200 || component.height < 120)) {
+      const newWidth = Math.max(component.width, 200);
+      const newHeight = Math.max(component.height, 120);
+      
+      if (newWidth !== component.width || newHeight !== component.height) {
+        resizeComponent(component.id, newWidth, newHeight);
+      }
+    }
+  }, [isSelected, component.width, component.height, component.id, resizeComponent]);
 
   return (
     <TooltipProvider>
@@ -216,31 +259,40 @@ export const CanvasComponent: React.FC<CanvasComponentProps> = memo(({ component
             {/* Selection outline with enhanced visibility */}
             <div className="absolute inset-0 border-2 border-primary shadow-glow pointer-events-none rounded-sm" />
             
-            {/* Enhanced resize handles */}
-            <div 
-              className="absolute -top-2 -left-2 w-3 h-3 bg-primary border-2 border-background cursor-nw-resize rounded-sm hover:scale-110 transition-transform shadow-elegant"
-              onMouseDown={(e) => handleResizeStart(e, 'nw')}
-            />
-            <div 
-              className="absolute -top-2 -right-2 w-3 h-3 bg-primary border-2 border-background cursor-ne-resize rounded-sm hover:scale-110 transition-transform shadow-elegant"
-              onMouseDown={(e) => handleResizeStart(e, 'ne')}
-            />
-            <div 
-              className="absolute -bottom-2 -left-2 w-3 h-3 bg-primary border-2 border-background cursor-sw-resize rounded-sm hover:scale-110 transition-transform shadow-elegant"
-              onMouseDown={(e) => handleResizeStart(e, 'sw')}
-            />
-            <div 
-              className="absolute -bottom-2 -right-2 w-3 h-3 bg-primary border-2 border-background cursor-se-resize rounded-sm hover:scale-110 transition-transform shadow-elegant"
-              onMouseDown={(e) => handleResizeStart(e, 'se')}
-            />
-            
-            {/* Drag handle */}
-            <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 cursor-move">
-              <GripVertical className="h-4 w-4 text-primary" />
-            </div>
-            
-            {/* Action toolbar with enhanced buttons */}
-            <div className="absolute -top-12 left-0 flex gap-1 animate-slide-in-right">
+                         {/* Enhanced resize handles */}
+             <div 
+               className="absolute -top-2 -left-2 w-3 h-3 bg-primary border-2 border-background cursor-nw-resize rounded-sm hover:scale-110 transition-transform shadow-elegant resize-handle"
+               onMouseDown={(e) => handleResizeStart(e, 'nw')}
+             />
+             <div 
+               className="absolute -top-2 -right-2 w-3 h-3 bg-primary border-2 border-background cursor-ne-resize rounded-sm hover:scale-110 transition-transform shadow-elegant resize-handle"
+               onMouseDown={(e) => handleResizeStart(e, 'ne')}
+             />
+             <div 
+               className="absolute -bottom-2 -left-2 w-3 h-3 bg-primary border-2 border-background cursor-sw-resize rounded-sm hover:scale-110 transition-transform shadow-elegant resize-handle"
+               onMouseDown={(e) => handleResizeStart(e, 'sw')}
+             />
+             <div 
+               className="absolute -bottom-2 -right-2 w-3 h-3 bg-primary border-2 border-background cursor-se-resize rounded-sm hover:scale-110 transition-transform shadow-elegant resize-handle"
+               onMouseDown={(e) => handleResizeStart(e, 'se')}
+             />
+             
+             {/* Dynamic Drag handle - positioned above or below based on component location and size */}
+             <div className={`absolute left-1/2 transform -translate-x-1/2 cursor-move ${
+               component.y < 60 || !hasEnoughHeight ? 'top-full mt-2' : 
+               component.y > 600 ? 'bottom-full mb-2' : '-top-8'
+             }`} data-no-drag>
+               <GripVertical className="h-4 w-4 text-primary" />
+             </div>
+             
+             {/* Dynamic Action toolbar - positioned above or below based on component location and size */}
+             <div className={`absolute flex gap-1 animate-slide-in-right action-toolbar ${
+               component.y < 80 || !hasEnoughHeight ? 'top-full mt-2' : 
+               component.y > 600 ? 'bottom-full mb-2' : '-top-12'
+             } ${
+               component.x < 120 || !hasEnoughWidth ? 'left-0' : 
+               component.x > 600 ? 'right-0' : 'left-0'
+             }`}>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button

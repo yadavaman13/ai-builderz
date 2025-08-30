@@ -12,7 +12,13 @@ export const useAutoSave = (projectId?: string) => {
   const lastSavedRef = useRef<string>('');
 
   useEffect(() => {
-    if (!user || !projectId) return;
+    if (!user || !projectId) {
+      // Clear any existing timeout if user is not logged in or no project ID
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+      return;
+    }
 
     const currentState = JSON.stringify(components);
     if (currentState === lastSavedRef.current) return;
@@ -63,7 +69,14 @@ export const useAutoSave = (projectId?: string) => {
   }, [components, user, projectId, toast]);
 
   const manualSave = async () => {
-    if (!user || !projectId) return false;
+    if (!user || !projectId) {
+      toast({
+        title: "Save Failed",
+        description: "Please log in and ensure you have a valid project.",
+        variant: "destructive",
+      });
+      return false;
+    }
 
     try {
       const projectData = {
@@ -91,9 +104,10 @@ export const useAutoSave = (projectId?: string) => {
       
       return true;
     } catch (error: any) {
+      console.error('Manual save failed:', error);
       toast({
         title: "Save Failed",
-        description: error.message,
+        description: error.message || "Failed to save project",
         variant: "destructive",
       });
       return false;
