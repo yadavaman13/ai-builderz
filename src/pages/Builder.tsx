@@ -11,10 +11,12 @@ import { OnboardingFlow } from '@/components/builder/OnboardingFlow';
 import { VersionHistory } from '@/components/builder/VersionHistory';
 import { SchemaVisualizer } from '@/components/builder/SchemaVisualizer';
 import { ExportDialog } from '@/components/builder/ExportDialog';
+import { AuthModal } from '@/components/auth/AuthModal';
 import { useBuilderStore } from '@/stores/builderStore';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 import { useState, useEffect } from "react";
 
 export default function Builder() {
@@ -38,9 +40,11 @@ export default function Builder() {
   const { manualSave } = useAutoSave('current-project'); // TODO: Get actual project ID
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showVersionHistory, setShowVersionHistory] = useState(false);
   const [showSchemaVisualizer, setShowSchemaVisualizer] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   // Check if user is new (no components and no previous projects)
   useEffect(() => {
@@ -51,6 +55,11 @@ export default function Builder() {
   }, [components.length]);
 
   const handleSave = async () => {
+    if (!user) {
+      setShowAuthModal(true);
+      return;
+    }
+
     setLoading(true);
     try {
       const success = await manualSave();
@@ -360,6 +369,18 @@ export default function Builder() {
         {showOnboarding && (
           <OnboardingFlow onComplete={handleCompleteOnboarding} />
         )}
+
+        {/* Auth Modal */}
+        <AuthModal 
+          open={showAuthModal} 
+          onOpenChange={setShowAuthModal}
+          onSuccess={() => {
+            toast({
+              title: "Welcome!",
+              description: "You can now save your projects.",
+            });
+          }}
+        />
       </div>
     </DndProvider>
   );

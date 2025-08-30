@@ -2,7 +2,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Eye, ExternalLink, Smartphone, Monitor, Tablet, Upload, Download, AlertTriangle, CheckCircle, Globe, Zap, ArrowLeft } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Eye, ExternalLink, Smartphone, Monitor, Tablet, Upload, Download, AlertTriangle, CheckCircle, Globe, Zap, ArrowLeft, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { useBuilderStore } from "@/stores/builderStore";
 import { PreviewComponent } from "@/components/builder/PreviewComponent";
@@ -157,20 +158,6 @@ export default function Preview() {
             <div className="border-l border-border pl-4">
               <h1 className="text-xl font-semibold">Preview</h1>
             </div>
-            <div className="flex items-center gap-2 bg-muted rounded-lg p-1">
-              {devices.map((device) => (
-                <Button
-                  key={device.name}
-                  variant={selectedDevice.name === device.name ? "secondary" : "ghost"}
-                  size="sm"
-                  onClick={() => setSelectedDevice(device)}
-                  className="h-8 px-3"
-                >
-                  <device.icon className="h-4 w-4 mr-2" />
-                  {device.name}
-                </Button>
-              ))}
-            </div>
           </div>
           
           <div className="flex items-center gap-2">
@@ -180,42 +167,91 @@ export default function Preview() {
                 {warnings.length} warning{warnings.length !== 1 ? 's' : ''}
               </Badge>
             )}
-            <Select value={deploymentPlatform} onValueChange={(value: 'vercel' | 'netlify') => setDeploymentPlatform(value)}>
-              <SelectTrigger className="w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="vercel">
-                  <div className="flex items-center gap-2">
-                    <Zap className="h-4 w-4" />
-                    Vercel
-                  </div>
-                </SelectItem>
-                <SelectItem value="netlify">
-                  <div className="flex items-center gap-2">
-                    <Globe className="h-4 w-4" />
-                    Netlify
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="outline" size="sm" onClick={handleExportJSON}>
-              <Download className="mr-2 h-4 w-4" />
-              Export JSON
-            </Button>
-            <Button variant="outline" size="sm" onClick={handleExportHTML}>
-              <Download className="mr-2 h-4 w-4" />
-              Export HTML
-            </Button>
-            <Button 
-              className="gradient-primary text-white" 
-              size="sm"
-              onClick={handleDeploy}
-              disabled={isDeploying}
-            >
-              <Upload className="mr-2 h-4 w-4" />
-              {isDeploying ? 'Deploying...' : `Deploy to ${deploymentPlatform}`}
-            </Button>
+            
+            {/* Preview Mode Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="flex items-center gap-2">
+                  <selectedDevice.icon className="h-4 w-4" />
+                  {selectedDevice.name}
+                  <ChevronDown className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {devices.map((device) => (
+                  <DropdownMenuItem 
+                    key={device.name}
+                    onClick={() => setSelectedDevice(device)}
+                    className="flex items-center gap-2"
+                  >
+                    <device.icon className="h-4 w-4" />
+                    {device.name}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Deployment Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="flex items-center gap-2">
+                  <Upload className="h-4 w-4" />
+                  Deploy
+                  <ChevronDown className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem 
+                  onClick={() => {
+                    setDeploymentPlatform('vercel');
+                    handleDeploy();
+                  }}
+                  disabled={isDeploying}
+                  className="flex items-center gap-2"
+                >
+                  <Zap className="h-4 w-4" />
+                  Deploy to Vercel
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => {
+                    setDeploymentPlatform('netlify');
+                    handleDeploy();
+                  }}
+                  disabled={isDeploying}
+                  className="flex items-center gap-2"
+                >
+                  <Globe className="h-4 w-4" />
+                  Deploy to Netlify
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Export Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="flex items-center gap-2">
+                  <Download className="h-4 w-4" />
+                  Export
+                  <ChevronDown className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem 
+                  onClick={handleExportJSON}
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Export JSON
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={handleExportHTML}
+                  className="flex items-center gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Export HTML
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>

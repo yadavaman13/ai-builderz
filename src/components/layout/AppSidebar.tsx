@@ -2,6 +2,7 @@ import { Home, Layout, Database, Eye, Shield, Settings, Zap, FolderOpen, LogOut 
 import { NavLink, useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 import {
   Sidebar,
@@ -18,6 +19,8 @@ import {
 
 const publicNavigationItems = [
   { title: "Home", url: "/", icon: Home },
+  { title: "Builder", url: "/builder", icon: Layout },
+  { title: "Preview", url: "/preview", icon: Eye },
 ];
 
 const privateNavigationItems = [
@@ -78,10 +81,23 @@ export function AppSidebar() {
               {navigationItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <NavLink to={item.url} end className={getNavCls}>
-                      <item.icon className="h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </NavLink>
+                    {collapsed ? (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <NavLink to={item.url} end className={getNavCls}>
+                            <item.icon className="h-4 w-4" />
+                          </NavLink>
+                        </TooltipTrigger>
+                        <TooltipContent side="right">
+                          <p>{item.title}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    ) : (
+                      <NavLink to={item.url} end className={getNavCls}>
+                        <item.icon className="h-4 w-4" />
+                        <span>{item.title}</span>
+                      </NavLink>
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

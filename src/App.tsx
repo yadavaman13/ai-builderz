@@ -49,11 +49,11 @@ const AppRoutes = () => {
     <AppLayout>
       <Routes>
         <Route path="/auth" element={user ? <Navigate to="/projects" replace /> : <Auth />} />
-        <Route path="/" element={user ? <Navigate to="/projects" replace /> : <Home />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/builder" element={<Builder />} />
+        <Route path="/preview" element={<Preview />} />
         <Route path="/projects" element={<ProtectedRoute><Projects /></ProtectedRoute>} />
-        <Route path="/builder" element={<ProtectedRoute><Builder /></ProtectedRoute>} />
         <Route path="/data" element={<ProtectedRoute><Data /></ProtectedRoute>} />
-        <Route path="/preview" element={<ProtectedRoute><Preview /></ProtectedRoute>} />
         <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
