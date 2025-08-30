@@ -1,0 +1,11 @@
+# This is a placeholder for favicon-32x32.png
+# You can generate this PNG file from the SVG favicon.svg using:
+# 1. Online SVG to PNG converters
+# 2. Image editing software like GIMP, Photoshop, or Figma
+# 3. Command line tools like ImageMagick: convert favicon.svg favicon-32x32.png
+# 4. Browser: Open favicon.svg and save as PNG
+
+# The PNG should be 32x32 pixels with the same design:
+# - Purple gradient background (#7C3AED to #A855F7)
+# - White Zap/lightning bolt icon
+# - Circular design matching the SVG
