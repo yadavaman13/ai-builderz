@@ -8,18 +8,22 @@ import { Canvas } from '@/components/builder/Canvas';
 import { PropertiesPanel } from '@/components/builder/PropertiesPanel';
 import { DatabaseBindingPanel } from '@/components/builder/DatabaseBindingPanel';
 import { useBuilderStore } from '@/stores/builderStore';
+import { useAutoSave } from '@/hooks/useAutoSave';
 import { useToast } from "@/hooks/use-toast";
 
 export default function Builder() {
   const { components, clearCanvas } = useBuilderStore();
+  const { manualSave } = useAutoSave('current-project'); // TODO: Get actual project ID
   const { toast } = useToast();
 
   const handleSave = async () => {
-    // TODO: Implement save to Supabase
-    toast({
-      title: "Saved",
-      description: "Your design has been saved successfully.",
-    });
+    const success = await manualSave();
+    if (success) {
+      toast({
+        title: "Saved",
+        description: "Your design has been saved successfully.",
+      });
+    }
   };
 
   const handlePreview = () => {
