@@ -7,8 +7,6 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { ComponentLibrary } from '@/components/builder/ComponentLibrary';
 import { Canvas } from '@/components/builder/Canvas';
 import { PropertiesPanel } from '@/components/builder/PropertiesPanel';
-import { DatabaseBindingPanel } from '@/components/builder/DatabaseBindingPanel';
-import { DeploymentPanel } from '@/components/builder/DeploymentPanel';
 import { OnboardingFlow } from '@/components/builder/OnboardingFlow';
 import { VersionHistory } from '@/components/builder/VersionHistory';
 import { SchemaVisualizer } from '@/components/builder/SchemaVisualizer';
@@ -47,45 +45,95 @@ export default function Builder() {
   }, [components.length]);
 
   const handleSave = async () => {
-    const success = await manualSave();
-    if (success) {
-      toast({
-        title: "Saved",
-        description: "Your design has been saved successfully.",
-      });
+    setLoading(true);
+    try {
+      const success = await manualSave();
+      if (success) {
+        toast({
+          title: "Saved",
+          description: "Your design has been saved successfully.",
+        });
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handlePreview = () => {
-    // Validate layout before preview
+  const handleUndo = () => {
+    undo();
+    toast({
+      title: "Undo",
+      description: "Action undone successfully.",
+    });
+  };
+
+  const handleRedo = () => {
+    redo();
+    toast({
+      title: "Redo",
+      description: "Action redone successfully.",
+    });
+  };
+
+  const handleExport = async () => {
+    setLoading(true);
+    try {
+      // Simulate export process
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const exportData = {
+        components,
+        timestamp: new Date().toISOString(),
+        version: '1.0'
+      };
+      
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { 
+        type: 'application/json' 
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'project-export.json';
+      a.click();
+      URL.revokeObjectURL(url);
+      
+      toast({
+        title: "Exported",
+        description: "Your project has been exported successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Export Failed",
+        description: "Failed to export your project.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleClear = async () => {
     const { errors, warnings } = validateLayout();
     
     if (errors.length > 0) {
       toast({
-        title: "Cannot Preview",
-        description: `${errors.length} error(s) found. Please fix them first.`,
+        title: "Cannot Clear",
+        description: `Please fix ${errors.length} error(s) first.`,
         variant: "destructive",
       });
       return;
     }
-    
-    if (warnings.length > 0) {
-      toast({
-        title: "Layout Warnings",
-        description: `${warnings.length} warning(s) found. Preview may not be optimal.`,
-      });
-    }
-    
-    navigate('/preview');
-  };
 
-  const handleUndo = () => {
-    if (canUndo) {
-      undo();
+    setLoading(true);
+    try {
+      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate processing
+      clearCanvas();
       toast({
-        title: "Undone",
-        description: "Reverted to previous state.",
+        title: "Canvas Cleared",
+        description: "All components have been removed.",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -94,95 +142,114 @@ export default function Builder() {
     setShowOnboarding(false);
   };
 
-  const handleExport = () => {
-    // Generate project export
-    const projectData = {
-      components,
-      metadata: {
-        exportedAt: new Date().toISOString(),
-        componentCount: components.length,
-        projectId: currentProjectId
-      }
-    };
-    
-    const blob = new Blob([JSON.stringify(projectData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `project-export-${Date.now()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    
-    toast({
-      title: "Exported",
-      description: "Project exported successfully as JSON.",
-    });
-  };
-
-  const handleClear = () => {
-    clearCanvas();
-    toast({
-      title: "Canvas Cleared",
-      description: "All components have been removed from the canvas.",
-    });
-  };
-
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="h-screen flex flex-col">
         {/* Header Toolbar */}
-        <div className="border-b border-border p-4">
+        <div className="border-b border-border p-4 bg-background/95 backdrop-blur-sm">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold">Visual Builder</h1>
-              <div className="text-sm text-muted-foreground">
-                {components.length} component{components.length !== 1 ? 's' : ''}
+            <div className="flex items-center gap-4">
+              <div>
+                <h1 className="text-xl font-bold">Visual Builder</h1>
+                <div className="text-sm text-muted-foreground">
+                  {components.length} component{components.length !== 1 ? 's' : ''} on canvas
+                </div>
               </div>
             </div>
             
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" onClick={handleSave}>
-                <Save className="h-4 w-4 mr-2" />
-                Save
-              </Button>
               <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleUndo}
-                disabled={!canUndo}
-                title="Undo last action"
+                onClick={handleSave}
+                disabled={isLoading}
+                className="hover-lift"
               >
-                <Undo className="h-4 w-4 mr-2" />
-                Undo
+                {isLoading ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Save
+                  </>
+                )}
               </Button>
-              <Button variant="outline" size="sm" onClick={handlePreview}>
+
+              <div className="flex items-center border rounded-lg">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleUndo}
+                  disabled={!canUndo || isLoading}
+                  className="hover-lift"
+                >
+                  <Undo className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleRedo}
+                  disabled={!canRedo || isLoading}
+                  className="hover-lift"
+                >
+                  <Redo className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <Button
+                variant="outline"
+                onClick={() => navigate('/preview')}
+                disabled={isLoading}
+                className="hover-lift"
+              >
                 <Eye className="h-4 w-4 mr-2" />
                 Preview
               </Button>
-              <Button variant="outline" size="sm" onClick={handleExport}>
-                <Download className="h-4 w-4 mr-2" />
+
+              <Button
+                variant="outline"
+                onClick={handleExport}
+                disabled={isLoading}
+                className="hover-lift"
+              >
+                {isLoading ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary mr-2" />
+                ) : (
+                  <Download className="h-4 w-4 mr-2" />
+                )}
                 Export
               </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
+
+              <Button
+                variant="outline"
                 onClick={() => setShowVersionHistory(!showVersionHistory)}
                 className={showVersionHistory ? 'bg-accent' : ''}
               >
                 <History className="h-4 w-4 mr-2" />
                 History
               </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
+
+              <Button
+                variant="outline"  
                 onClick={() => setShowSchemaVisualizer(!showSchemaVisualizer)}
                 className={showSchemaVisualizer ? 'bg-accent' : ''}
               >
-                <Eye className="h-4 w-4 mr-2" />
+                <Palette className="h-4 w-4 mr-2" />
                 Schema
               </Button>
-              <Button variant="outline" size="sm" onClick={handleClear}>
-                <Trash2 className="h-4 w-4 mr-2" />
+
+              <Button
+                variant="destructive"
+                onClick={handleClear}
+                disabled={components.length === 0 || isLoading}
+                className="hover-lift"
+              >
+                {isLoading ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                ) : (
+                  <Trash2 className="h-4 w-4 mr-2" />
+                )}
                 Clear
               </Button>
             </div>
@@ -196,48 +263,83 @@ export default function Builder() {
             <Canvas />
           </div>
 
-          {/* Right Resizable Sidebar */}
-          <div className="border-l border-sidebar-border bg-sidebar flex w-80 min-w-[320px] max-w-[500px]">
-            <div className="flex-1 flex flex-col overflow-hidden">
-              {/* Component Library */}
-              <div className="flex-1 min-h-0">
-                <ComponentLibrary />
-              </div>
-              
-              {/* Properties Panel */}
-              <div className="border-t border-sidebar-border">
-                <PropertiesPanel />
-              </div>
+          {/* Right Sidebar - Components & Properties */}
+          <div className="w-80 border-l border-sidebar-border bg-sidebar flex flex-col">
+            {/* Component Library - Main Focus */}
+            <div className="flex-1 min-h-0">
+              <ComponentLibrary />
             </div>
             
-            {/* Additional Panels */}
-            <div className="border-l border-sidebar-border w-72 flex flex-col overflow-hidden">
-              {/* Version History Panel (collapsible) */}
-              {showVersionHistory && (
-                <div className="border-b border-sidebar-border bg-sidebar">
-                  <VersionHistory />
-                </div>
-              )}
-              
-              {/* Schema Visualizer Panel (collapsible) */}
-              {showSchemaVisualizer && (
-                <div className="border-b border-sidebar-border bg-sidebar">
-                  <SchemaVisualizer />
-                </div>
-              )}
-              
-              {/* Database Binding Panel */}
-              <div className="flex-1 min-h-0 bg-sidebar">
-                <DatabaseBindingPanel />
-              </div>
-              
-              {/* Deployment Panel */}
-              <div className="border-t border-sidebar-border bg-sidebar">
-                <DeploymentPanel />
+            {/* Selected Component Properties */}
+            <div className="h-64 border-t border-sidebar-border overflow-hidden">
+              <PropertiesPanel />
+            </div>
+            
+            {/* Quick Actions */}
+            <div className="border-t border-sidebar-border p-3 space-y-2 bg-sidebar-accent/10">
+              <div className="text-xs font-medium text-sidebar-foreground/70">Quick Tools</div>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setShowVersionHistory(!showVersionHistory)}
+                  className={`text-xs justify-start ${showVersionHistory ? 'bg-sidebar-accent' : ''}`}
+                >
+                  <History className="h-3 w-3 mr-1" />
+                  History
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setShowSchemaVisualizer(!showSchemaVisualizer)}
+                  className={`text-xs justify-start ${showSchemaVisualizer ? 'bg-sidebar-accent' : ''}`}
+                >
+                  <Palette className="h-3 w-3 mr-1" />
+                  Schema
+                </Button>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Floating Panels */}
+        {showVersionHistory && (
+          <div className="fixed top-20 right-4 w-80 h-[calc(100vh-6rem)] bg-card border border-border rounded-lg shadow-2xl z-50 animate-slide-in-right">
+            <div className="p-3 border-b border-border flex items-center justify-between">
+              <h3 className="font-medium">Version History</h3>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setShowVersionHistory(false)}
+                className="h-6 w-6 p-0"
+              >
+                ×
+              </Button>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <VersionHistory />
+            </div>
+          </div>
+        )}
+
+        {showSchemaVisualizer && (
+          <div className="fixed top-20 right-4 w-96 h-[calc(100vh-6rem)] bg-card border border-border rounded-lg shadow-2xl z-50 animate-slide-in-right">
+            <div className="p-3 border-b border-border flex items-center justify-between">
+              <h3 className="font-medium">Database Schema</h3>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setShowSchemaVisualizer(false)}
+                className="h-6 w-6 p-0"
+              >
+                ×
+              </Button>
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <SchemaVisualizer />
+            </div>
+          </div>
+        )}
         
         {/* Onboarding Flow */}
         {showOnboarding && (

@@ -10,6 +10,8 @@ import { Plus, Folder, Calendar, Trash2, Edit3 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
+import { useNavigate } from "react-router-dom";
+import { useBuilderStore } from "@/stores/builderStore";
 
 interface Project {
   id: string;
@@ -21,6 +23,8 @@ interface Project {
 
 export default function Projects() {
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const { setProject } = useBuilderStore();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -170,6 +174,11 @@ export default function Projects() {
     setDialogOpen(true);
   };
 
+  const handleOpenProject = (projectId: string) => {
+    setProject(projectId);
+    navigate(`/builder?project=${projectId}`);
+  };
+
   if (loading) {
     return (
       <div className="p-8 max-w-7xl mx-auto">
@@ -293,7 +302,12 @@ export default function Projects() {
                     Updated {formatDistanceToNow(new Date(project.updated_at), { addSuffix: true })}
                   </span>
                 </div>
-                <Button variant="outline" size="sm" className="w-full">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full hover:bg-primary hover:text-primary-foreground transition-colors"
+                  onClick={() => handleOpenProject(project.id)}
+                >
                   Open Project
                 </Button>
               </CardContent>
