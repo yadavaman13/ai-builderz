@@ -76,7 +76,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      exec_sql: {
+        Args: { sql: string }
+        Returns: undefined
+      }
+      get_table_info: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
