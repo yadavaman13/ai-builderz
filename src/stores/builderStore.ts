@@ -40,8 +40,10 @@ interface BuilderState {
   selectedComponentId: string | null;
   currentProjectId: string | null;
   versions: ProjectVersion[];
+  currentVersionIndex: number;
   canUndo: boolean;
   canRedo: boolean;
+  isLoading: boolean;
   
   // Actions
   addComponent: (component: Omit<BuilderComponent, 'id'>) => void;
@@ -50,18 +52,21 @@ interface BuilderState {
   selectComponent: (id: string | null) => void;
   moveComponent: (id: string, x: number, y: number) => void;
   resizeComponent: (id: string, width: number, height: number) => void;
+  duplicateComponent: (id: string) => void;
   clearCanvas: () => void;
   setProject: (projectId: string) => void;
   getSelectedComponent: () => BuilderComponent | null;
+  setLoading: (loading: boolean) => void;
   
-  // Version control
+  // Version control with proper undo/redo
   saveVersion: (description: string) => void;
   restoreVersion: (versionId: string) => void;
   undo: () => void;
   redo: () => void;
   
-  // Validation
+  // Validation and grid system
   validateLayout: () => { errors: string[]; warnings: string[] };
+  snapToGrid: (x: number, y: number) => { x: number; y: number };
 }
 
 export const useBuilderStore = create<BuilderState>()(
@@ -71,8 +76,10 @@ export const useBuilderStore = create<BuilderState>()(
       selectedComponentId: null,
       currentProjectId: null,
       versions: [],
+      currentVersionIndex: -1,
       canUndo: false,
       canRedo: false,
+      isLoading: false,
 
       addComponent: (component) => {
         const newComponent: BuilderComponent = {
@@ -151,10 +158,16 @@ export const useBuilderStore = create<BuilderState>()(
           description,
         };
         
-        set((prevState) => ({
-          versions: [newVersion, ...prevState.versions.slice(0, 19)], // Keep last 20 versions
-          canUndo: true,
-        }));
+        // Remove any versions after current index (for proper redo behavior)
+        const versionsUpToCurrent = state.versions.slice(0, state.currentVersionIndex + 1);
+        const newVersions = [...versionsUpToCurrent, newVersion].slice(-20); // Keep last 20 versions
+        
+        set({
+          versions: newVersions,
+          currentVersionIndex: newVersions.length - 1,
+          canUndo: newVersions.length > 1,
+          canRedo: false,
+        });
       },
 
       restoreVersion: (versionId) => {
@@ -168,19 +181,62 @@ export const useBuilderStore = create<BuilderState>()(
         }
       },
 
+      duplicateComponent: (id) => {
+        const state = get();
+        const component = state.components.find(comp => comp.id === id);
+        if (component) {
+          const duplicated: BuilderComponent = {
+            ...component,
+            id: uuidv4(),
+            x: component.x + 20,
+            y: component.y + 20,
+          };
+          set((state) => ({
+            components: [...state.components, duplicated],
+            selectedComponentId: duplicated.id,
+          }));
+          get().saveVersion(`Duplicated ${component.type} component`);
+        }
+      },
+
+      setLoading: (loading) => {
+        set({ isLoading: loading });
+      },
+
       undo: () => {
         const state = get();
-        if (state.versions.length > 0) {
-          const previousVersion = state.versions[0];
+        if (state.canUndo && state.currentVersionIndex > 0) {
+          const previousVersion = state.versions[state.currentVersionIndex - 1];
           set({
             components: [...previousVersion.components],
             selectedComponentId: null,
+            currentVersionIndex: state.currentVersionIndex - 1,
+            canRedo: true,
+            canUndo: state.currentVersionIndex > 1,
           });
         }
       },
 
       redo: () => {
-        // Implement redo logic if needed
+        const state = get();
+        if (state.canRedo && state.currentVersionIndex < state.versions.length - 1) {
+          const nextVersion = state.versions[state.currentVersionIndex + 1];
+          set({
+            components: [...nextVersion.components],
+            selectedComponentId: null,
+            currentVersionIndex: state.currentVersionIndex + 1,
+            canUndo: true,
+            canRedo: state.currentVersionIndex < state.versions.length - 2,
+          });
+        }
+      },
+
+      snapToGrid: (x, y) => {
+        const gridSize = 20;
+        return {
+          x: Math.round(x / gridSize) * gridSize,
+          y: Math.round(y / gridSize) * gridSize,
+        };
       },
 
       validateLayout: () => {

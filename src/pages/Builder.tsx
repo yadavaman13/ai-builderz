@@ -19,7 +19,18 @@ import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 
 export default function Builder() {
-  const { components, clearCanvas, currentProjectId, validateLayout, canUndo, undo } = useBuilderStore();
+  const { 
+    components, 
+    clearCanvas, 
+    currentProjectId, 
+    validateLayout, 
+    canUndo, 
+    canRedo,
+    isLoading,
+    undo, 
+    redo,
+    setLoading
+  } = useBuilderStore();
   const { manualSave } = useAutoSave('current-project'); // TODO: Get actual project ID
   const { toast } = useToast();
   const navigate = useNavigate();
